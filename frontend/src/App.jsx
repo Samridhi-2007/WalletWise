@@ -20,6 +20,7 @@ import Settings from './pages/Settings';
 // Import authentication components
 import Login from './components/Login';
 import Signup from './components/Signup';
+import VerifyEmail from './components/VerifyEmail';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 
@@ -74,6 +75,15 @@ function App() {
                   <Signup />
                 </PublicRoute>
               } 
+            />
+
+            <Route
+              path="/verify-email"
+              element={
+                <PublicRoute>
+                  <VerifyEmail />
+                </PublicRoute>
+              }
             />
             
             {/* Protected Routes - Only accessible when logged in */}

@@ -1,315 +1,702 @@
-// src/components/Homepage.jsx
-import React, { useState, useEffect } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  BarChart3,
+  Brain,
+  Compass,
+  CreditCard,
+  LayoutDashboard,
+  LineChart,
+  Lightbulb,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Users,
+  Wallet,
+} from "lucide-react";
 import "./Homepage.css";
 
 const Homepage = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const animation = useMemo(
+    () => ({
+      fadeUp: {
+        hidden: { opacity: 0, y: 24 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+      },
+      stagger: {
+        visible: { transition: { staggerChildren: 0.12 } },
+      },
+    }),
+    []
+  );
+
   const smoothScroll = (targetId) => {
     const targetElement = document.getElementById(targetId);
     if (targetElement) {
       window.scrollTo({
         top: targetElement.offsetTop - 80,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
       setIsMenuOpen(false);
     }
   };
 
-  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 768) {
+      if (window.innerWidth > 900) {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isMenuOpen &&
+        window.innerWidth <= 900 &&
+        !event.target.closest(".ww-nav-links") &&
+        !event.target.closest(".ww-menu-toggle")
+      ) {
         setIsMenuOpen(false);
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Handle click outside mobile menu
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (isMenuOpen && window.innerWidth <= 768) {
-        if (!e.target.closest('.nav-links') && !e.target.closest('.mobile-menu-btn')) {
-          setIsMenuOpen(false);
-        }
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, [isMenuOpen]);
 
-  // Animation observer
-  useEffect(() => {
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-        }
-      });
-    }, observerOptions);
-    
-    // Observe feature cards
-    const featureCards = document.querySelectorAll('.feature-card');
-    featureCards.forEach(card => {
-      card.style.opacity = '0';
-      card.style.transform = 'translateY(20px)';
-      card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-      observer.observe(card);
-    });
-    
-    // Observe stat items
-    const statItems = document.querySelectorAll('.stat-item');
-    statItems.forEach(stat => {
-      stat.style.opacity = '0';
-      stat.style.transform = 'translateY(20px)';
-      stat.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-      observer.observe(stat);
-    });
-    
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div className="homepage">
-      {/* Header */}
-      <header className="header">
-        <div className="container">
-          <nav className="navbar">
-            <div className="logo">
-              <i className="fas fa-wallet"></i>
-              WalletWise
-            </div>
-            
-            {/* Desktop Navigation */}
-            <div className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
-              <a onClick={() => smoothScroll('features')}>Features</a>
-              <a onClick={() => smoothScroll('why')}>Why Students Love</a>
-              <a onClick={() => smoothScroll('stats')}>Results</a>
-              <a onClick={() => smoothScroll('cta')}>Get Started</a>
-            </div>
-            
-            {/* Mobile Menu Button */}
-            <button 
-              className="mobile-menu-btn"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              <i className="fas fa-bars"></i>
+    <div className="ww-page">
+      <header className="ww-header">
+        <div className="ww-container ww-nav">
+          <button className="ww-logo" onClick={() => smoothScroll("top")}>
+            <span className="ww-logo-icon">
+              <Wallet size={24} />
+            </span>
+            WalletWise
+          </button>
+          <nav className={`ww-nav-links ${isMenuOpen ? "is-open" : ""}`}>
+            <button onClick={() => smoothScroll("about")}>About</button>
+            <button onClick={() => smoothScroll("features")}>Features</button>
+            <button className="ww-btn ww-btn-primary" onClick={() => navigate("/signup")}>
+              Get Started
             </button>
           </nav>
+          <button
+            className="ww-menu-toggle"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            aria-label="Toggle navigation"
+            type="button"
+          >
+            <span />
+            <span />
+          </button>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="hero">
-        <div className="container">
-          <div className="hero-content">
-            <div className="hero-text">
-              <h1>Money Made Simple for Students 💸</h1>
-              <p>WalletWise helps you track, save, and grow — without stress. Designed specifically for college life with a friendly interface that makes finance fun.</p>
-              <div className="hero-buttons">
-                <button 
-                  className="btn btn-primary"
-                  onClick={() => navigate('/dashboard')}
-                >
-                  <i className="fas fa-graduation-cap"></i>
-                  Start as Student
+      <main id="top">
+        <section className="ww-hero">
+          <div className="ww-container ww-hero-grid">
+            <motion.div
+              className="ww-hero-copy"
+              initial="hidden"
+              animate="visible"
+              variants={animation.stagger}
+            >
+              <motion.p className="ww-chip" variants={animation.fadeUp}>
+                Built for students who want clarity and control
+              </motion.p>
+              <motion.h1 className="ww-hero-title" variants={animation.fadeUp}>
+                Your money, organized into a smarter student dashboard.
+              </motion.h1>
+              <motion.p className="ww-hero-sub" variants={animation.fadeUp}>
+                WalletWise gives you a real-time view of your budgets, expenses, goals,
+                and weekly habits in one calming space designed for college life.
+              </motion.p>
+              <motion.div className="ww-hero-actions" variants={animation.fadeUp}>
+                <button className="ww-btn ww-btn-primary" onClick={() => navigate("/signup")}>
+                  Get started free
                 </button>
-                <button 
-                  className="btn btn-secondary"
-                  onClick={() => smoothScroll('features')}
-                >
-                  <i className="fas fa-chart-bar"></i>
-                  See How It Works
-                </button>
-              </div>
-            </div>
-            <div className="hero-image">
-              <div className="phone-mockup">
-                <div className="phone-screen">
-                  <h3>WalletWise</h3>
-                  <p>Track your coffee, textbooks, and nights out all in one place!</p>
-                  <i className="fas fa-pizza-slice"></i>
-                  <p>Your money, made simple.</p>
+              </motion.div>
+              <motion.div className="ww-hero-metrics" variants={animation.fadeUp}>
+                <div>
+                  <span className="ww-metric-value">3x</span>
+                  <span className="ww-metric-label">faster expense logging</span>
+                </div>
+                <div>
+                  <span className="ww-metric-value">92%</span>
+                  <span className="ww-metric-label">students hit savings goals</span>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            <motion.div
+              className="ww-hero-visual"
+              initial="hidden"
+              animate="visible"
+              variants={animation.fadeUp}
+            >
+              <div className="ww-dashboard-mock">
+                <div className="ww-mock-header">
+                  <div>
+                    <p className="ww-mock-title">WalletWise Overview</p>
+                    <p className="ww-mock-sub">Week 4 • Campus term</p>
+                  </div>
+                  <span className="ww-badge">
+                    <Sparkles size={14} />
+                    Smart forecast
+                  </span>
+                </div>
+                <div className="ww-mock-grid">
+                  <div className="ww-mock-card">
+                    <p>Monthly Budget</p>
+                    <h4>$640 / $900</h4>
+                    <div className="ww-mock-bar">
+                      <span />
+                    </div>
+                  </div>
+                  <div className="ww-mock-card">
+                    <p>Goals Progress</p>
+                    <h4>Campus Trip</h4>
+                    <div className="ww-mock-pill">78% complete</div>
+                  </div>
+                  <div className="ww-mock-card ww-mock-chart">
+                    <p>Spending Curve</p>
+                    <div className="ww-mini-chart" />
+                  </div>
+                  <div className="ww-mock-card">
+                    <p>Smart Tips</p>
+                    <h4>Save $18/wk</h4>
+                    <span className="ww-mock-note">Based on coffee spending</span>
+                  </div>
                 </div>
               </div>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="ww-section" id="about">
+          <div className="ww-container">
+            <motion.div
+              className="ww-section-heading"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.fadeUp}
+            >
+              <p className="ww-kicker">About WalletWise</p>
+              <h2>Smart student finance tracking that explains the “why.”</h2>
+              <p>
+                WalletWise is an intelligent personal finance platform built for students and
+                young professionals to not just track money, but understand and improve
+                financial behaviour. Unlike traditional apps that only record expenses,
+                WalletWise analyzes patterns, predicts future needs, and delivers real-time
+                guidance before you spend.
+              </p>
+            </motion.div>
+            <motion.div
+              className="ww-feature-grid"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.stagger}
+            >
+              {[
+                {
+                  icon: <Lightbulb size={22} />,
+                  title: "Core idea",
+                  text: "Finance shouldn’t just be tracked — it should be understood.",
+                },
+                {
+                  icon: <Brain size={22} />,
+                  title: "Behavior-first insights",
+                  text: "Turn raw transactions into actionable insights and smarter planning.",
+                },
+                {
+                  icon: <ShieldCheck size={22} />,
+                  title: "Calm, confident decisions",
+                  text: "Get real-time guidance so you can spend with clarity, not stress.",
+                },
+              ].map((item) => (
+                <motion.article className="ww-card" key={item.title} variants={animation.fadeUp}>
+                  <span className="ww-icon">{item.icon}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </motion.article>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="ww-section ww-muted" id="problem">
+          <div className="ww-container">
+            <div className="ww-problem-grid">
+              <motion.div
+                className="ww-section-heading"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                variants={animation.fadeUp}
+              >
+                <p className="ww-kicker">Why students struggle</p>
+                <h2>Why Students Struggle with Money Today</h2>
+                <p>
+                  Juggling bills, budgets, and savings shouldn’t be another source of stress.
+                  But for many students, money feels confusing and out of control. Here’s why:
+                </p>
+                <ul className="ww-list">
+                  <li>Too many accounts, no clear view – Your money is scattered across bank accounts, cards, loans, and apps. Seeing the full picture is nearly impossible.</li>
+                  <li>Budgeting feels restrictive and hard – Most tools are built for adults with steady paychecks, not for student life with irregular income and expenses.</li>
+                  <li>Anxiety about the future – “Am I overspending?” “Can I afford this?” Without clarity, every purchase comes with a side of worry.</li>
+                </ul>
+                <p>
+                  You’re not bad with money. You just haven’t had the right tool built for your real student life.
+                </p>
+              </motion.div>
+              <motion.div
+                className="ww-problem-visual"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.6 }}
+              >
+                <div className="ww-problem-campus-card">
+                  <div className="ww-problem-card-top">
+                    <div>
+                      <p className="ww-problem-label">Campus wallet</p>
+                      <h3>$128.40 available</h3>
+                    </div>
+                    <span className="ww-problem-badge">Student plan</span>
+                  </div>
+                  <div className="ww-problem-card-body">
+                    <div className="ww-problem-row">
+                      <span className="ww-problem-icon">💳</span>
+                      <div>
+                        <p>Meal plan</p>
+                        <span>$62.10 left</span>
+                      </div>
+                    </div>
+                    <div className="ww-problem-row">
+                      <span className="ww-problem-icon">📚</span>
+                      <div>
+                        <p>Textbooks</p>
+                        <span>$48.00 due</span>
+                      </div>
+                    </div>
+                    <div className="ww-problem-row">
+                      <span className="ww-problem-icon">🏠</span>
+                      <div>
+                        <p>Rent split</p>
+                        <span>$320 next week</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <motion.div
+                  className="ww-problem-float-card"
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <p>Upcoming</p>
+                  <h4>Tuition payment</h4>
+                  <span>$1,200 in 12 days</span>
+                </motion.div>
+                <motion.div
+                  className="ww-problem-float-card secondary"
+                  animate={{ y: [0, 12, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <p>Linked accounts</p>
+                  <div className="ww-problem-account-dots">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <span>3 cards • 2 banks</span>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Section */}
-      <section className="features" id="features">
-        <div className="container">
-          <div className="section-title">
-            <h2>Everything You Need to Master Your Money</h2>
-            <p>WalletWise gives you the tools to take control of your finances with features designed for student life.</p>
+        <section className="ww-section" id="features">
+          <div className="ww-container">
+            <motion.div
+              className="ww-section-heading"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.fadeUp}
+            >
+              <p className="ww-kicker">Core features</p>
+              <h2>Everything you need to stay ahead of student finances.</h2>
+              <p>
+                Smart automation, gentle nudges, and dashboards that turn money
+                anxiety into confident decision-making.
+              </p>
+            </motion.div>
+            <motion.div
+              className="ww-feature-grid"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.stagger}
+            >
+              {[
+                {
+                  icon: <Compass size={22} />,
+                  title: "Budgeting",
+                  text: "Plan tuition, rent, and day-to-day spending with flexible budget lanes.",
+                },
+                {
+                  icon: <CreditCard size={22} />,
+                  title: "Expense Tracking",
+                  text: "Log every swipe in seconds with auto-categories tailored for campus life.",
+                },
+                {
+                  icon: <Target size={22} />,
+                  title: "Goals",
+                  text: "Set savings goals and track progress with visual milestones.",
+                },
+                {
+                  icon: <BarChart3 size={22} />,
+                  title: "Reports",
+                  text: "Generate weekly insights that explain where your money goes.",
+                },
+                {
+                  icon: <LineChart size={22} />,
+                  title: "Predictive Planning",
+                  text: "Forecast upcoming expenses and prepare for bills, events, and tuition.",
+                },
+                {
+                  icon: <Brain size={22} />,
+                  title: "Behaviour Analysis",
+                  text: "Detect overspending patterns and build healthier spending habits.",
+                },
+              ].map((feature) => (
+                <motion.article className="ww-card" key={feature.title} variants={animation.fadeUp}>
+                  <span className="ww-icon">{feature.icon}</span>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.text}</p>
+                </motion.article>
+              ))}
+            </motion.div>
           </div>
-          <div className="feature-cards">
-            {[
-              {
-                icon: 'fas fa-pizza-slice',
-                title: 'Track Daily Expenses',
-                desc: 'Log coffee runs, snacks, and nights out with just a tap. Categorize your spending to see where your money goes.'
-              },
-              {
-                icon: 'fas fa-calendar-alt',
-                title: 'Monthly Budget Planner',
-                desc: 'Plan your month with a simple budget that adjusts to your student lifestyle. Set limits for food, fun, and essentials.'
-              },
-              {
-                icon: 'fas fa-bell',
-                title: 'Overspending Alerts',
-                desc: 'Get friendly notifications when you\'re nearing your budget limits. No surprises at the end of the month!'
-              },
-              {
-                icon: 'fas fa-lightbulb',
-                title: 'Smart Spending Insights',
-                desc: 'Learn how to save more with personalized tips based on your spending habits. Become a money pro!'
-              }
-            ].map((feature, index) => (
-              <div key={index} className="feature-card">
-                <div className="feature-icon">
-                  <i className={feature.icon}></i>
-                </div>
-                <h3>{feature.title}</h3>
-                <p>{feature.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Why Students Love Section */}
-      <section className="why-love" id="why">
-        <div className="container">
-          <div className="why-content">
-            <div className="why-text">
-              <h2>Why Students Love WalletWise</h2>
-              <p>We built WalletWise specifically for the student experience, eliminating the complexity of traditional finance apps.</p>
-              <ul className="benefits-list">
-                {[
-                  'Simple UI - No confusing menus or complex charts',
-                  'No Complex Finance Terms - Plain language you actually understand',
-                  'Works Perfectly on Mobile - Designed for your phone, not a desktop',
-                  'Student-Focused Categories - Textbooks, coffee, campus meals, and more'
-                ].map((benefit, index) => (
-                  <li key={index} className="benefit-item">
-                    <i className="fas fa-check-circle"></i>
-                    <span><strong>{benefit.split(' - ')[0]}</strong> - {benefit.split(' - ')[1]}</span>
-                  </li>
-                ))}
+        <section className="ww-section" id="value">
+          <div className="ww-container ww-preview-grid">
+            <motion.div
+              className="ww-preview-copy"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.fadeUp}
+            >
+              <p className="ww-kicker">Value</p>
+              <h2>Financial awareness, not financial stress.</h2>
+              <p>
+                WalletWise helps students and young professionals build confidence with
+                money, reduce impulse spending, and plan ahead without guesswork.
+              </p>
+              <ul className="ww-list">
+                <li>Build financial discipline with gentle nudges.</li>
+                <li>Reduce impulse spending and overshoot risks.</li>
+                <li>Plan ahead confidently with predictive insights.</li>
+                <li>Understand the “why” behind every spending pattern.</li>
               </ul>
-            </div>
-            <div className="why-image">
-              <div className="students-img">
-                <i className="fas fa-users"></i>
-                <h3>Join 50,000+ Students</h3>
-                <p>Who are already mastering their money with WalletWise</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="stats" id="stats">
-        <div className="container">
-          <div className="stats-content">
-            {[
-              { icon: 'fas fa-chart-line', number: '95%', text: 'Users Saved More Money' },
-              { icon: 'fas fa-clock', number: '10+ Hours', text: 'Saved Per Month' },
-              { icon: 'fas fa-star', number: '4.8/5', text: 'User Rating' }
-            ].map((stat, index) => (
-              <div key={index} className="stat-item">
-                <div className="stat-icon">
-                  <i className={stat.icon}></i>
+            </motion.div>
+            <motion.div
+              className="ww-preview-frame"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.fadeUp}
+            >
+              <div className="ww-preview-header">
+                <div>
+                  <p className="ww-preview-title">Target users</p>
+                  <p className="ww-preview-sub">Built for your first real money decisions</p>
                 </div>
-                <div className="stat-number">{stat.number}</div>
-                <div className="stat-text">{stat.text}</div>
+                <span className="ww-chip ww-chip-ghost">
+                  <Users size={14} />
+                  Who it’s for
+                </span>
               </div>
-            ))}
+              <div className="ww-preview-content">
+                {[
+                  "Students managing tuition, rent, and daily expenses",
+                  "Young professionals building their first budgets",
+                  "First-time earners learning healthy money habits",
+                  "Anyone seeking clarity in personal finance",
+                ].map((item) => (
+                  <div className="ww-preview-metric" key={item}>
+                    <p>{item}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="ww-section ww-muted" id="how">
+          <div className="ww-container">
+            <motion.div
+              className="ww-section-heading"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.fadeUp}
+            >
+              <p className="ww-kicker">How it works</p>
+              <h2>From first login to real savings in three steps.</h2>
+            </motion.div>
+            <motion.div
+              className="ww-steps"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.stagger}
+            >
+              {[
+                {
+                  icon: <LayoutDashboard size={20} />,
+                  title: "Set up your dashboard",
+                  text: "Add income, tuition, and recurring expenses to build your baseline.",
+                },
+                {
+                  icon: <LineChart size={20} />,
+                  title: "Track and categorize",
+                  text: "Log spending or import transactions to keep your categories accurate.",
+                },
+                {
+                  icon: <ShieldCheck size={20} />,
+                  title: "Review insights weekly",
+                  text: "See your savings, adjust budgets, and stay on top of your goals.",
+                },
+              ].map((step, index) => (
+                <motion.div className="ww-step" key={step.title} variants={animation.fadeUp}>
+                  <div className="ww-step-icon">{step.icon}</div>
+                  <div>
+                    <p className="ww-step-count">Step {index + 1}</p>
+                    <h3>{step.title}</h3>
+                    <p>{step.text}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="ww-section" id="preview">
+          <div className="ww-container ww-preview-grid">
+            <motion.div
+              className="ww-preview-visual"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.fadeUp}
+            >
+              <div className="ww-preview-frame">
+                <div className="ww-preview-header">
+                  <div>
+                    <p className="ww-preview-title">Weekly Snapshot</p>
+                    <p className="ww-preview-sub">Sun - Sat</p>
+                  </div>
+                  <span className="ww-chip ww-chip-ghost">
+                    <Sparkles size={14} />
+                    Healthy trend
+                  </span>
+                </div>
+                <div className="ww-preview-content">
+                  <div className="ww-preview-metric">
+                    <p>Available cash</p>
+                    <h4>$420.50</h4>
+                  </div>
+                  <div className="ww-preview-metric">
+                    <p>Spent this week</p>
+                    <h4>$128.10</h4>
+                  </div>
+                  <div className="ww-preview-chart" />
+                </div>
+                <div className="ww-preview-list">
+                  <div>
+                    <span className="ww-dot ww-dot-primary" />
+                    Food and coffee
+                  </div>
+                  <div>
+                    <span className="ww-dot ww-dot-secondary" />
+                    Transit + supplies
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+            <motion.div
+              className="ww-preview-copy"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.fadeUp}
+            >
+              <p className="ww-kicker">Dashboard preview</p>
+              <h2>Built to feel like a calm command center.</h2>
+              <p>
+                Your WalletWise dashboard keeps everything in sync: budgets, spending,
+                goals, and insights in a single, glassy workspace.
+              </p>
+              <ul className="ww-list">
+                <li>Unified cash flow view with weekly rhythm.</li>
+                <li>Smart alerts when spending spikes.</li>
+                <li>Goal milestones that keep you motivated.</li>
+              </ul>
+              <div className="ww-hero-actions">
+                <button className="ww-btn ww-btn-primary" onClick={() => navigate("/signup")}>
+                  Get started free
+                </button>
+                <button className="ww-btn ww-btn-ghost" onClick={() => navigate("/dashboard")}>
+                  View live dashboard
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="ww-section ww-muted" id="testimonials">
+          <div className="ww-container">
+            <motion.div
+              className="ww-section-heading"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.fadeUp}
+            >
+              <p className="ww-kicker">Student voices</p>
+              <h2>Real stories from students staying on track.</h2>
+            </motion.div>
+            <motion.div
+              className="ww-testimonials"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.stagger}
+            >
+              {[
+                {
+                  name: "Maya Chen",
+                  role: "Biology major",
+                  quote:
+                    "The weekly snapshot keeps me calm. I finally know what I can spend without guilt.",
+                },
+                {
+                  name: "Jordan Reyes",
+                  role: "Design student",
+                  quote:
+                    "WalletWise feels like a coach. It nudges me before I overspend and celebrates wins.",
+                },
+                {
+                  name: "Samir Patel",
+                  role: "Computer science",
+                  quote:
+                    "I love the goals view. Watching my savings climb keeps me motivated every week.",
+                },
+              ].map((testimonial) => (
+                <motion.article className="ww-card ww-card-compact" key={testimonial.name} variants={animation.fadeUp}>
+                  <p className="ww-quote">"{testimonial.quote}"</p>
+                  <div className="ww-testimonial-meta">
+                    <p>{testimonial.name}</p>
+                    <span>{testimonial.role}</span>
+                  </div>
+                </motion.article>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="ww-cta" id="cta">
+          <div className="ww-container ww-cta-grid">
+            <motion.div
+              className="ww-cta-copy"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.fadeUp}
+            >
+              <p className="ww-kicker">Ready to start?</p>
+              <h2>Launch your WalletWise plan in under five minutes.</h2>
+              <p>
+                Set budgets, track spending, and hit your goals with a dashboard designed
+                for real student routines.
+              </p>
+              <div className="ww-cta-actions">
+                <button className="ww-btn ww-btn-primary" onClick={() => navigate("/signup")}>
+                  Get started free
+                </button>
+              </div>
+            </motion.div>
+            <motion.div
+              className="ww-cta-card"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={animation.fadeUp}
+            >
+              <div>
+                <p className="ww-cta-highlight">Average monthly savings</p>
+                <h3>$186</h3>
+              </div>
+              <div className="ww-cta-pill">
+                <Target size={16} />
+                Goal streaks active
+              </div>
+              <div className="ww-cta-pill">
+                <LayoutDashboard size={16} />
+                Dashboard checks weekly
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="ww-footer">
+        <div className="ww-container ww-footer-grid">
+          <div>
+            <div className="ww-footer-brand">
+              <span className="ww-logo-icon">
+                <Wallet size={18} />
+              </span>
+              WalletWise
+            </div>
+            <p className="ww-footer-text">
+              A student-first finance tracker built for clarity, calm, and momentum.
+            </p>
+          </div>
+          <div>
+            <p className="ww-footer-title">Product</p>
+            <button onClick={() => smoothScroll("about")}>About</button>
+            <button onClick={() => smoothScroll("features")}>Features</button>
+            <button onClick={() => smoothScroll("preview")}>Dashboard</button>
+            <button onClick={() => smoothScroll("how")}>How it works</button>
+          </div>
+          <div>
+            <p className="ww-footer-title">Company</p>
+            <button onClick={() => navigate("/login")}>Login</button>
+            <button onClick={() => navigate("/signup")}>Get started</button>
+            <button onClick={() => smoothScroll("testimonials")}>Testimonials</button>
+          </div>
+          <div>
+            <p className="ww-footer-title">Contact</p>
+            <p className="ww-footer-text">soumyamishra788@gmail.com</p>
+            <p className="ww-footer-text">Made With ❤️ in India</p>
           </div>
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="cta" id="cta">
-        <div className="container">
-          <div className="cta-content">
-            <h2>Start Your Money Journey Today</h2>
-            <p>Join thousands of students who are already taking control of their finances with WalletWise. It's free, simple, and made just for you.</p>
-            <div className="hero-buttons">
-              <button 
-                className="btn btn-primary"
-                onClick={() => navigate('/dashboard')}
-              >
-                <i className="fas fa-graduation-cap"></i>
-                Start as Student - It's Free
-              </button>
-              <button 
-                className="btn btn-secondary"
-                onClick={() => smoothScroll('features')}
-              >
-                <i className="fas fa-play-circle"></i>
-                Watch Demo Video
-              </button>
-            </div>
-            <p className="disclaimer">No credit card required. Student email verification.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-content">
-            <div className="footer-column">
-              <h3>WalletWise</h3>
-              <p>Money management made simple for students. Track, save, and grow without the stress.</p>
-              <div className="social-icons">
-                <a href="#"><i className="fab fa-instagram"></i></a>
-                <a href="#"><i className="fab fa-tiktok"></i></a>
-                <a href="#"><i className="fab fa-twitter"></i></a>
-                <a href="#"><i className="fab fa-facebook"></i></a>
-              </div>
-            </div>
-            <div className="footer-column">
-              <h3>Features</h3>
-              <a onClick={() => smoothScroll('features')}>Expense Tracking</a>
-              <a onClick={() => smoothScroll('features')}>Budget Planning</a>
-              <a onClick={() => smoothScroll('features')}>Spending Alerts</a>
-              <a onClick={() => smoothScroll('features')}>Smart Insights</a>
-            </div>
-            <div className="footer-column">
-              <h3>For Students</h3>
-              <a href="#">College Budgeting Guide</a>
-              <a href="#">Student Discounts</a>
-              <a href="#">Financial Literacy Tips</a>
-              <a href="#">Campus Partnerships</a>
-            </div>
-            <div className="footer-column">
-              <h3>Company</h3>
-              <a href="#">About Us</a>
-              <a href="#">Careers</a>
-              <a href="#">Privacy Policy</a>
-              <a href="#">Terms of Service</a>
-            </div>
-          </div>
-          <div className="copyright">
-            &copy; 2023 WalletWise. All rights reserved. Made with ❤️ for students everywhere.
-          </div>
+        <div className="ww-footer-bottom">
+          <p>© 2026 WalletWise. All rights reserved.</p>
         </div>
       </footer>
     </div>
@@ -317,3 +704,4 @@ const Homepage = () => {
 };
 
 export default Homepage;
+

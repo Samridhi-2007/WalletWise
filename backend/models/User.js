@@ -22,6 +22,19 @@ const userSchema = new mongoose.Schema({
     trim: true,
     match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please provide a valid email']
   },
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailOtpHash: {
+    type: String
+  },
+  emailOtpExpires: {
+    type: Date
+  },
+  emailOtpSentAt: {
+    type: Date
+  },
   passwordHash: {
     type: String
   },

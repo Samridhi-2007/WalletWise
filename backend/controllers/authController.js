@@ -1,10 +1,13 @@
 ﻿const bcrypt = require('bcryptjs');
 const { z } = require('zod');
 const User = require('../models/User');
+const { sendEmail } = require('../utils/mailer');
+const { generateOtp, hashOtp, otpExpiresAt } = require('../utils/otp');
 const {
   signAccessToken,
   signRefreshToken,
-  verifyRefreshToken
+  verifyRefreshToken,
+  getTokenExpirationDate
 } = require('../utils/tokens');
 
 const registerSchema = z.object({
@@ -40,17 +43,14 @@ const cookieOptions = () => {
 };
 
 const setAuthCookies = (res, accessToken, refreshToken) => {
-  const accessMaxAge = 15 * 60 * 1000;
-  const refreshMaxAge = 7 * 24 * 60 * 60 * 1000;
-
   res.cookie('access_token', accessToken, {
     ...cookieOptions(),
-    maxAge: accessMaxAge
+    expires: getTokenExpirationDate(accessToken) || new Date(Date.now() + 10 * 60 * 1000)
   });
 
   res.cookie('refresh_token', refreshToken, {
     ...cookieOptions(),
-    maxAge: refreshMaxAge
+    expires: getTokenExpirationDate(refreshToken) || new Date(Date.now() + 24 * 60 * 60 * 1000)
   });
 };
 
@@ -68,8 +68,31 @@ const safeUser = (user) => ({
   year: user.year,
   phoneNumber: user.phoneNumber,
   walletBalance: user.walletBalance,
-  provider: user.provider
+  provider: user.provider,
+  emailVerified: user.emailVerified
 });
+
+const sendVerificationOtp = async (user) => {
+  const otp = generateOtp();
+  user.emailOtpHash = hashOtp(otp);
+  user.emailOtpExpires = otpExpiresAt(10);
+  user.emailOtpSentAt = new Date();
+  await user.save();
+
+  const subject = 'Verify your WalletWise account';
+  const text = `Your WalletWise verification code is ${otp}. It expires in 10 minutes.`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+      <h2>Verify your WalletWise account</h2>
+      <p>Your verification code is:</p>
+      <p style="font-size: 24px; font-weight: bold; letter-spacing: 4px;">${otp}</p>
+      <p>This code expires in 10 minutes.</p>
+      <p>If you didn't request this, you can ignore this email.</p>
+    </div>
+  `;
+
+  await sendEmail({ to: user.email, subject, text, html });
+};
 
 const register = async (req, res) => {
   try {
@@ -99,22 +122,18 @@ const register = async (req, res) => {
       department,
       year,
       provider: 'local',
-      walletBalance: 0
+      walletBalance: 0,
+      emailVerified: false
     });
     await user.setPassword(password);
-    await user.save();
-
-    const accessToken = signAccessToken(user);
-    const refreshToken = signRefreshToken(user);
-    user.refreshTokenHash = await bcrypt.hash(refreshToken, 10);
     await User.saveWithUniqueStudentId(user);
-
-    setAuthCookies(res, accessToken, refreshToken);
+    await sendVerificationOtp(user);
 
     return res.status(201).json({
       success: true,
-      message: 'Registration successful',
-      user: safeUser(user)
+      message: 'Registration successful. Please verify your email.',
+      requiresVerification: true,
+      email: user.email
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -142,6 +161,15 @@ const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
+      });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        success: false,
+        code: 'EMAIL_NOT_VERIFIED',
+        message: 'Please verify your email before logging in.',
+        email: user.email
       });
     }
 
@@ -248,6 +276,89 @@ const me = async (req, res) => {
   }
 };
 
+const verifyEmail = async (req, res) => {
+  try {
+    const { email, otp } = req.body || {};
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and OTP are required'
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.emailVerified) {
+      return res.json({ success: true, message: 'Email already verified', user: safeUser(user) });
+    }
+
+    if (!user.emailOtpHash || !user.emailOtpExpires) {
+      return res.status(400).json({ success: false, message: 'No OTP requested' });
+    }
+
+    if (user.emailOtpExpires < new Date()) {
+      return res.status(400).json({ success: false, message: 'OTP expired' });
+    }
+
+    const matches = user.emailOtpHash === hashOtp(String(otp).trim());
+    if (!matches) {
+      return res.status(400).json({ success: false, message: 'Invalid OTP' });
+    }
+
+    user.emailVerified = true;
+    user.emailOtpHash = null;
+    user.emailOtpExpires = null;
+    await user.save();
+
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
+    user.refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+    await user.save();
+
+    setAuthCookies(res, accessToken, refreshToken);
+
+    return res.json({
+      success: true,
+      message: 'Email verified successfully',
+      user: safeUser(user)
+    });
+  } catch (error) {
+    console.error('Verify email error:', error);
+    return res.status(500).json({ success: false, message: 'Server error verifying email' });
+  }
+};
+
+const resendEmailOtp = async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.emailVerified) {
+      return res.json({ success: true, message: 'Email already verified' });
+    }
+
+    await sendVerificationOtp(user);
+
+    return res.json({
+      success: true,
+      message: 'OTP resent successfully'
+    });
+  } catch (error) {
+    console.error('Resend OTP error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to resend OTP' });
+  }
+};
+
 const updateProfile = async (req, res) => {
   try {
     const parsed = updateProfileSchema.safeParse(req.body);
@@ -285,6 +396,14 @@ const updateProfile = async (req, res) => {
 const googleCallback = async (req, res) => {
   try {
     const user = req.user;
+    if (!user.emailVerified) {
+      user.emailVerified = true;
+      user.emailOtpHash = null;
+      user.emailOtpExpires = null;
+      user.emailOtpSentAt = null;
+      await User.saveWithUniqueStudentId(user);
+    }
+
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
     user.refreshTokenHash = await bcrypt.hash(refreshToken, 10);
@@ -307,5 +426,7 @@ module.exports = {
   refresh,
   me,
   updateProfile,
-  googleCallback
+  googleCallback,
+  verifyEmail,
+  resendEmailOtp
 };

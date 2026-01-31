@@ -97,7 +97,10 @@ const Signup = () => {
         year: year
       });
 
-      if (data?.success) {
+      if (data?.success && data?.requiresVerification) {
+        toast.success('Registration successful! Please verify your email.');
+        navigate(`/verify-email?email=${encodeURIComponent(data.email || email)}`);
+      } else if (data?.success) {
         toast.success('Registration successful! Redirecting...');
         setTimeout(() => {
           navigate('/dashboard');
@@ -161,11 +164,8 @@ const Signup = () => {
       <div className="auth-card">
         <div className="auth-header">
           <h1>WalletWise</h1>
-          <p className="subtitle">Student Registration</p>
-          <p className="backend-status">
-            Backend:{' '}
-            <span className="status-indicator">http://localhost:5000</span>
-          </p>
+          <p className="subtitle">Create your student account.</p>
+          
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -361,18 +361,18 @@ const Signup = () => {
               Login
             </Link>
           </p>
-          <p className="debug-info">Backend: http://localhost:5000</p>
+         
         </div>
       </div>
 
       <div className="auth-features">
         <h3>Student Benefits</h3>
         <ul>
-          <li>🎓 Free for students</li>
-          <li>💰 Budget tracking tools</li>
-          <li>📈 Financial insights</li>
-          <li>🔔 Smart notifications</li>
-          <li>📊 Expense reports</li>
+          <li>No-cost student plan</li>
+          <li>Smart budgeting templates</li>
+          <li>Insightful weekly summaries</li>
+          <li>Alerts for overspending</li>
+          <li>Export-ready reports</li>
         </ul>
       </div>
     </div>

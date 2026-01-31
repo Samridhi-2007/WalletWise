@@ -21,12 +21,21 @@ const configurePassport = () => {
           }
 
           let user = await User.findOne({ googleId });
-          if (user) return done(null, user);
+          if (user) {
+            if (!user.emailVerified) {
+              user.emailVerified = true;
+              await User.saveWithUniqueStudentId(user);
+            }
+            return done(null, user);
+          }
 
           user = await User.findOne({ email });
           if (user) {
             user.googleId = googleId;
             user.provider = user.provider === 'local' ? 'both' : user.provider;
+            if (!user.emailVerified) {
+              user.emailVerified = true;
+            }
             await User.saveWithUniqueStudentId(user);
             return done(null, user);
           }
@@ -37,7 +46,8 @@ const configurePassport = () => {
             email,
             fullName,
             googleId,
-            provider: 'google'
+            provider: 'google',
+            emailVerified: true
           });
 
           return done(null, user);

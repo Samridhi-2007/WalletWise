@@ -41,6 +41,10 @@ const Login = () => {
           autoClose: 1500,
           pauseOnHover: false
         });
+      } else if (data?.code === 'EMAIL_NOT_VERIFIED') {
+        toast.info('Please verify your email to continue.');
+        const targetEmail = data?.email || email;
+        navigate(`/verify-email?email=${encodeURIComponent(targetEmail)}`);
       } else {
         toast.error(data?.message || 'Login failed');
       }
@@ -63,7 +67,7 @@ const Login = () => {
       <div className="auth-card">
         <div className="auth-header">
           <h1>WalletWise</h1>
-          <p className="subtitle">Student Login</p>
+          <p className="subtitle">Welcome back, student.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -141,20 +145,6 @@ const Login = () => {
             Continue with Google
           </button>
 
-          <button 
-            type="button" 
-            className="demo-btn"
-            onClick={() => {
-              // Demo credentials
-              setFormData({
-                email: 'demo@student.com',
-                password: 'demo123'
-              });
-              toast.info('Demo credentials filled. Click Login to continue.');
-            }}
-          >
-            Try Demo Account
-          </button>
         </form>
 
         <div className="auth-footer">
@@ -168,11 +158,11 @@ const Login = () => {
       <div className="auth-features">
         <h3>Why WalletWise?</h3>
         <ul>
-          <li>📊 Track your expenses</li>
-          <li>🎯 Set budget goals</li>
-          <li>📱 Mobile-friendly</li>
-          <li>🔒 Secure & private</li>
-          <li>🎓 Student discounts</li>
+          <li>Track expenses automatically</li>
+          <li>Set budgets that fit campus life</li>
+          <li>Mobile-friendly from day one</li>
+          <li>Private and secure by design</li>
+          <li>Student-first insights</li>
         </ul>
       </div>
     </div>

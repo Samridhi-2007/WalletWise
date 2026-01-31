@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (payload) => {
     const { data } = await api.post('/api/auth/register', payload);
-    if (data?.success) {
+    if (data?.success && !data?.requiresVerification) {
       setUser(data.user);
     }
     return data;
@@ -89,7 +89,8 @@ export const AuthProvider = ({ children }) => {
         signup,
         updateProfile,
         logout,
-        refreshSession
+        refreshSession,
+        reloadUser: loadUser
       }}
     >
       {children}
