@@ -130,32 +130,23 @@ const updateTransaction = async (req, res) => {
 
         const oldTransaction = await Transaction.findOne({ _id: id, userId });
         if (!oldTransaction) {
-            return res.status(404).json({
-                success: false,
-                message: 'Transaction not found'
-            });
+            return res.status(404).json({ success: false, message: 'Transaction not found' });
         }
 
-        if (amount && amount <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Amount must be greater than 0'
-            });
+        if (amount !== undefined && Number(amount) <= 0) {
+            return res.status(400).json({ success: false, message: 'Amount must be greater than 0' });
         }
 
-        // Calculate balance adjustment
         let balanceChange = 0;
 
-        // Revert old transaction effect
         if (oldTransaction.type === 'income') {
             balanceChange -= oldTransaction.amount;
         } else {
             balanceChange += oldTransaction.amount;
         }
 
-        // Apply new transaction effect
         const newType = type || oldTransaction.type;
-        const newAmount = amount !== undefined ? amount : oldTransaction.amount;
+        const newAmount = amount !== undefined ? Number(amount) : oldTransaction.amount;
 
         if (newType === 'income') {
             balanceChange += newAmount;
@@ -163,7 +154,6 @@ const updateTransaction = async (req, res) => {
             balanceChange -= newAmount;
         }
 
-        // Update transaction
         oldTransaction.type = newType;
         oldTransaction.amount = newAmount;
         oldTransaction.category = category || oldTransaction.category;
@@ -174,7 +164,6 @@ const updateTransaction = async (req, res) => {
 
         await oldTransaction.save();
 
-        // Update user balance
         if (balanceChange !== 0) {
             await User.findByIdAndUpdate(userId, {
                 $inc: { walletBalance: balanceChange }
@@ -198,10 +187,7 @@ const updateTransaction = async (req, res) => {
 
     } catch (error) {
         console.error('Update transaction error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error updating transaction'
-        });
+        res.status(500).json({ success: false, message: 'Error updating transaction' });
     }
 };
 
