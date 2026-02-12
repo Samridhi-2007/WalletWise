@@ -17,7 +17,7 @@ const globalLimiter = rateLimit({
 // Stricter limits for authentication routes to prevent brute-force attacks
 const authLimiter = rateLimit({
     windowMs: process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000, // 15 minutes default
-    max: process.env.AUTH_RATE_LIMIT_MAX || 20, // Limit each IP to 20 login requests per windowMs
+    max: process.env.AUTH_RATE_LIMIT_MAX || 1000, // Limit each IP to 1000 login requests per windowMs
     standardHeaders: true,
     legacyHeaders: false,
     message: {
